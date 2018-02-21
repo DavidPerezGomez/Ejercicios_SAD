@@ -1,0 +1,7 @@
+# archivos eclipse
+.project
+.classpath
+/bin
+
+# archivos idea
+.idea
