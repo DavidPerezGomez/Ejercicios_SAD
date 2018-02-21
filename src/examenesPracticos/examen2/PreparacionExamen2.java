@@ -23,7 +23,6 @@ import java.util.Random;
 
 import weka.core.Instance;
 import weka.core.Instances;
-import weka.core.converters.ConverterUtils;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.supervised.attribute.AttributeSelection;
@@ -153,7 +152,7 @@ public class PreparacionExamen2 {
 		 * '40-49','premeno','15-19','0-2','yes','3','right','left_up','no',?
 		 * ----------------------------------------------------------
 		 */
-//		ConverterUtils.DataSource source = new ConverterUtils.DataSource("/home/ander/breast-cancer-one-instance.arff");
+//		DataSource source = new DataSource("/home/ander/breast-cancer-one-instance.arff");
 //        Instances dataToPredict = source.getDataSet();
 //        // setting class attribute if the data format does not provide this information
 //        // For example, the XRFF format saves the class attribute information as well
