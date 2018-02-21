@@ -7,7 +7,7 @@
  *   [-] Guardar modelo y su calidad
  * Ejecutable 2:
  *   [-] Cargar modelo
- *   [ ] Usar el modelo cargado para predecir la clase (sacar esto de: evaluate Javadoc)
+ *   [-] Usar el modelo cargado para predecir la clase (sacar esto de: evaluate Javadoc)
  *   
  * NOTA: 
  * 	[x] -> es lo que se supone que ya hemos dado en la etapa anterior.
@@ -21,7 +21,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
+import weka.core.Instance;
 import weka.core.Instances;
+import weka.core.converters.ConverterUtils;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
 import weka.filters.supervised.attribute.AttributeSelection;
@@ -43,6 +45,10 @@ public class PreparacionExamen2 {
 	 * 3º args[2] path donde cargar o guardar el modelo -> ej: /some/where/oner.model
 	 * 
 	 * Puedes poner los valores en "run configurations -> pestaña arguments"
+	 */
+	/**
+	 * @param args
+	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
 		if (args.length != 3) {
@@ -117,6 +123,46 @@ public class PreparacionExamen2 {
 		// se escriben los resultados
 		writeToFile(outputPath, results);
 		System.out.println(results);
+		
+
+	// ###################################################################################
+	// ANEXO 1 : ¿COMO PREDECIR UNA CLASE? ###############################################
+		/*
+		 * FUENTE: https://stackoverflow.com/questions/28123913/print-out-prediction-with-weka-in-java
+		 * 
+		 * Imaginemos que hemos entrenado un clasificador con el archivo "breast-cancer.arff" y
+		 * que ahora tenemos otro con una sola instancia del que no sabemos la clase (tiene una ? en la clase)
+		 * 
+		 * ----------------------------------------------------------
+		 * Archivo inventado "breast-cancer-one-instance.arff"
+		 * ----------------------------------------------------------
+		 * @relation breast-cancer
+		 * 
+		 * @attribute age {'10-19','20-29','30-39','40-49','50-59','60-69','70-79','80-89','90-99'}
+		 * @attribute menopause {'lt40','ge40','premeno'}
+		 * @attribute tumor-size {'0-4','5-9','10-14','15-19','20-24','25-29','30-34','35-39','40-44','45-49','50-54','55-59'}
+		 * @attribute inv-nodes {'0-2','3-5','6-8','9-11','12-14','15-17','18-20','21-23','24-26','27-29','30-32','33-35','36-39'}
+		 * @attribute node-caps {'yes','no'}
+		 * @attribute deg-malig {'1','2','3'}
+		 * @attribute breast {'left','right'}
+		 * @attribute breast-quad {'left_up','left_low','right_up','right_low','central'}
+		 * @attribute 'irradiat' {'yes','no'}
+		 * @attribute 'Class' {'no-recurrence-events','recurrence-events'}
+		 * 
+		 * @data
+		 * '40-49','premeno','15-19','0-2','yes','3','right','left_up','no',?
+		 * ----------------------------------------------------------
+		 */
+//		ConverterUtils.DataSource source = new ConverterUtils.DataSource("/home/ander/breast-cancer-one-instance.arff");
+//        Instances dataToPredict = source.getDataSet();
+//        // setting class attribute if the data format does not provide this information
+//        // For example, the XRFF format saves the class attribute information as well
+//        if (dataToPredict.classIndex() == -1)
+//            dataToPredict.setClassIndex(dataToPredict.numAttributes() - 1);
+//
+//		predictClass(oneR, dataToPredict);
+	// FIN ANEXO 1 #######################################################################
+	// ###################################################################################
 	}
 	
 	private static String evalNoHonesta(Classifier pClassifier, Instances pData) throws Exception {
@@ -220,5 +266,24 @@ public class PreparacionExamen2 {
 			e.printStackTrace();
 		}
 		return cls;
+	}
+	
+	private static void predictClass(Classifier pClassifier, Instances pDatos) {
+		try {
+			// cogemos la primera linea de nuestro archivo inventado,
+			// que tiene un ? en la instancia (mirar ANEXO 1)
+			Instance instance = pDatos.instance(0);
+			// clasificamos la instancia y guardamos el double que devuelve
+			double label = pClassifier.classifyInstance(instance);
+			// guardamos el resultado en la instancia
+			instance.setClassValue(label);
+			// mostramos el resultado por pantalla
+			System.out.println(instance.stringValue(instance.classIndex()));
+			// si hemos seguido el ejemplo que he explicado el resultado es "recurrence-events"
+		} catch (Exception e) {
+			System.out.println("Error al clasificar una instancia");
+			e.printStackTrace();
+		}
+
 	}
 }
