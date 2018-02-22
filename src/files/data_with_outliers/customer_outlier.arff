@@ -1,0 +1,20 @@
+@relation customers_preparation
+
+@attribute Customer_ID numeric
+@attribute Name String                                    
+@attribute Sex {0,1}
+@attribute Weight numeric
+@attribute Age numeric
+@attribute Income numeric
+
+@data
+1,Somchai,1,65,20,12000
+2,Somying,0,4,18,7000
+3,Somsmall,0,58,35,35000
+4,Somjing,1,190,16,4000
+5,Somsri,0,63,110,20000
+6,Sombat,1,77,32,21000
+7,Somyos,1,1500,21,5600
+8,Somluck,0,54,33,34000
+9,Somsak,1,75,560,13000
+10,Somporn,0,57,24,9800
