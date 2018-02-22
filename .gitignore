@@ -2,6 +2,7 @@
 .project
 .classpath
 /bin
+/out
 
 # archivos idea
 .idea
