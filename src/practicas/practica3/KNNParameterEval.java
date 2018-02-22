@@ -104,7 +104,7 @@ public class KNNParameterEval {
      * @param pEvalW true si se quiere evaluar los valores del parámetro w. false en caso contrario
      * @param pVerbose  true si se quiere que se muestre por pantalla el resultado de cada combinación de los tres parámetros. false en caso contrario
      */
-    private void evaluateParameters(String pPath, int pClassIndex, boolean pFilter, boolean pEvalK, boolean pEvalD, boolean pEvalW, boolean pVerbose) {
+    public void evaluateParameters(String pPath, int pClassIndex, boolean pFilter, boolean pEvalK, boolean pEvalD, boolean pEvalW, boolean pVerbose) {
         // variables para guardar información de la ejecución
         long t0 = System.currentTimeMillis();
         int it = 0;
