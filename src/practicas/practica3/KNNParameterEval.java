@@ -1,4 +1,4 @@
-package main;
+package practicas.practica3;
 import weka.attributeSelection.BestFirst;
 import weka.attributeSelection.CfsSubsetEval;
 import weka.classifiers.Classifier;
@@ -249,6 +249,7 @@ public class KNNParameterEval {
             evaluator.crossValidateModel(pClassifier, pData, folds, new Random(1));
         } catch (Exception e) {
             System.out.println("\033[31mError al evaluar el clasificador.\033[0m");
+            evaluator = null;
         }
         return evaluator;
     }

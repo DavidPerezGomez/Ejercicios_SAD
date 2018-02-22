@@ -1,4 +1,4 @@
-package main;
+package practicas.practica3;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 
