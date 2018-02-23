@@ -73,6 +73,9 @@ public class PreparacionExamen2 {
 			System.exit(1);
 		}
 		
+		// hace un print de los atributos y de la clase
+		printAttributesAndClass(data);
+		
 		// filtar los datos
 		AttributeSelection filter = new AttributeSelection();
 		CfsSubsetEval eval = new CfsSubsetEval();
@@ -284,5 +287,18 @@ public class PreparacionExamen2 {
 			e.printStackTrace();
 		}
 
+	}
+
+	private static void printAttributesAndClass(Instances pDatos) {
+		// lo preguntó en el examen del grupo 1
+		int numAtttributes = pDatos.numAttributes();
+		
+		System.out.println("Hay " + numAtttributes + " atributos:");
+
+		for (int i=0; i < numAtttributes; i++) {
+			System.out.println(" - " + pDatos.attribute(i).name());
+		}
+		
+		System.out.println("La clase es: " + pDatos.attribute(pDatos.classIndex()).name());
 	}
 }
