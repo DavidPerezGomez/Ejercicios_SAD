@@ -32,6 +32,7 @@ public class Main {
         System.out.print("¿Quieres que se muestre el resultado de cada comprobación por consola? [S/n]: ");
         tmp = scanner.nextLine();
         boolean verbose = tmp.toLowerCase().charAt(0) == 's';
+        scanner.close();
 
         KNNParameterEval parameterEval = new KNNParameterEval();
         parameterEval.evaluateParameters(path, classIndex, filter, k, d, w, verbose);
