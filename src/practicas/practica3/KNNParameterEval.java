@@ -105,13 +105,12 @@ public class KNNParameterEval {
      * @param pVerbose  true si se quiere que se muestre por pantalla el resultado de cada combinación de los tres parámetros. false en caso contrario
      */
     public void evaluateParameters(String pPath, int pClassIndex, boolean pFilter, boolean pEvalK, boolean pEvalD, boolean pEvalW, boolean pVerbose) {
-        // variables para guardar información de la ejecución
-        long t0 = System.currentTimeMillis();
-        int it = 0;
-
         // se cargan los datos del archivo
         Instances initialData = InstancesLoader.load(pPath);
         if (initialData != null) {
+
+            // se indica el índice de la clase
+            initialData.setClassIndex(pClassIndex);
 
             // se filtran o no los atributos según el input
             Instances filteredData;
@@ -120,9 +119,6 @@ public class KNNParameterEval {
             } else {
                 filteredData = initialData;
             }
-
-            // se indica el índice de la clase
-            filteredData.setClassIndex(pClassIndex);
 
             // variables para almacenar los posibles valores de cada atributo
             int kMaxValue;
@@ -133,7 +129,8 @@ public class KNNParameterEval {
 
             // se inicializa el valor máximo que va a poder tomar k
             if(pEvalK)
-                kMaxValue = filteredData.numInstances() - 1;
+//                kMaxValue = filteredData.numInstances() - 1;
+                kMaxValue = Math.min(filteredData.numInstances() - 1, 100);
             else
                 kMaxValue = 1;
 
@@ -173,7 +170,6 @@ public class KNNParameterEval {
                         if (topResult == null || fMeasure > topResult.getFMeasure())
                             topResult = result;
 
-                        it ++;
                         if (pVerbose) {
                             System.out.println(result.toString() + "\n");
                         }
@@ -183,8 +179,10 @@ public class KNNParameterEval {
             System.out.println("################################");
             System.out.println("MEJOR RESULTADO:");
             System.out.println(topResult.toString());
-            System.out.println("\nnúmero de combinaciones de k, d y w: " + it);
-            System.out.println("tiempo de ejecución: " + (System.currentTimeMillis() - t0)/1000 + " segundos\n");
+            // se hace de nuevo la evaluación
+            IBk classifier = createIBkClassifier(topResult.getK(), topResult.getD(), topResult.getW());
+            Evaluation evaluation = evaluateClassifier(classifier, filteredData);
+            printEvaluation(evaluation);
         }
     }
 
@@ -293,6 +291,21 @@ public class KNNParameterEval {
         } catch (Exception e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    /**
+     * Muestra por consola los resultados de la evaluación dada.
+     * @param pEvaluation
+     */
+    private void printEvaluation(Evaluation pEvaluation) {
+        try {
+            System.out.println(pEvaluation.toSummaryString());
+            System.out.println(pEvaluation.toClassDetailsString());
+            System.out.println(pEvaluation.toMatrixString());
+        } catch (Exception e) {
+            System.out.println("\033[31mError al mostrar la información de la evaluación\033[0m");
+            System.out.println(e.getMessage());
         }
     }
 
