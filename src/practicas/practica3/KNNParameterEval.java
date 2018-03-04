@@ -12,75 +12,6 @@ import java.util.Random;
 
 public class KNNParameterEval {
 
-    /**
-     * clase privada para agrupar el valor de los parámetros junto con el f-measure resultante
-     */
-    private class ResultSet {
-
-        // variables de instancia
-        int k;
-        NormalizableDistance d;
-        int w;
-        double fMeasure;
-
-        /**
-         * Constructora de la clase
-         * @param pK
-         * @param pD
-         * @param pW
-         * @param pFMeasure
-         */
-        public ResultSet(int pK, NormalizableDistance pD, int pW, double pFMeasure) {
-            k = pK;
-            d = pD;
-            w = pW;
-            fMeasure = pFMeasure;
-        }
-
-        /**
-         * Recoge los datos de la instancia en una String que se puede mostrar por pantalla.
-         * @return
-         */
-        public String toString() {
-            StringBuilder str = new StringBuilder();
-            str.append("k: " + k + "\n");
-            str.append("d: " + d.getClass().toString() + "\n");
-            str.append("w: ");
-            switch (w) {
-                case IBk.WEIGHT_NONE:
-                    str.append("No distance weighting");
-                    break;
-                case IBk.WEIGHT_INVERSE:
-                    str.append("Weight by 1/distance");
-                    break;
-                case IBk.WEIGHT_SIMILARITY:
-                    str.append("Weight by 1 - distance");
-                    break;
-                default:
-                    break;
-            }
-            str.append("\n");
-            str.append("f-measure: " + fMeasure);
-            return str.toString();
-        }
-
-        public int getK() {
-            return k;
-        }
-
-        public NormalizableDistance getD() {
-            return d;
-        }
-
-        public int getW() {
-            return w;
-        }
-
-        public double getFMeasure() {
-            return fMeasure;
-        }
-    }
-
     // variables de instancia
     NormalizableDistance[] posDValues;
     int[] posWValues;
@@ -147,7 +78,7 @@ public class KNNParameterEval {
                 wValues = new int[] {posWValues[0]};
 
             // variable para guardar el mejor resultado en cualquier momento dado
-            ResultSet topResult = null;
+            IBkResultSet topResult = null;
 
             // se itera anidadamente sobre todos los posible valores de k, d y w
             for (int k = 1; k <= kMaxValue; k++) {
@@ -163,7 +94,7 @@ public class KNNParameterEval {
                         // se obtiene el f-measure de la evaluación
                         fMeasure = findFMeasure(evaluation, filteredData);
 
-                        ResultSet result = new ResultSet(k, d, w, fMeasure);
+                        IBkResultSet result = new IBkResultSet(k, d, w, fMeasure);
 
                         // si el resultado mejor que el mejor hasta el momento,
                         // se guarda como nuevo mejor resultado
