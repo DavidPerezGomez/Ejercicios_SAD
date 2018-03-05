@@ -39,11 +39,11 @@ public class PreparacionExamen2 {
 	
 	/*
 	 * El ejecutable necesita 3 argumentos:
-	 * 1º args[0] path donde coger los datos -> ej: /some/where/breast-cancer.arff
-	 * 2º args[1] path donde guardar los resultados -> ej: /some/where/results.txt
-	 * 3º args[2] path donde cargar o guardar el modelo -> ej: /some/where/oner.model
+	 * 1Âº args[0] path donde coger los datos -> ej: /some/where/breast-cancer.arff
+	 * 2Âº args[1] path donde guardar los resultados -> ej: /some/where/results.txt
+	 * 3Âº args[2] path donde cargar o guardar el modelo -> ej: /some/where/oner.model
 	 * 
-	 * Puedes poner los valores en "run configurations -> pestaña arguments"
+	 * Puedes poner los valores en "run configurations -> pestaÃ±a arguments"
 	 */
 	/**
 	 * @param args
@@ -113,8 +113,8 @@ public class PreparacionExamen2 {
 //		OneR oneR = (OneR) loadModel(modelPath); // modelo entrenado
 //		/*
 //		 *  Si hacemos, por ejemplo, una evalNoHonesta con este clasificador que hemos
-//		 *  cargado, los resultados serán iguales que el que nos da el que hacemos desde 0.
-//		 *  Así que está bien.
+//		 *  cargado, los resultados serÃ¡n iguales que el que nos da el que hacemos desde 0.
+//		 *  AsÃ­ que estÃ¡ bien.
 //		 */
 //		Evaluation evaluator = new Evaluation(filteredData);
 //		evaluator.evaluateModel(oneR, filteredData);
@@ -128,7 +128,7 @@ public class PreparacionExamen2 {
 		
 
 	// ###################################################################################
-	// ANEXO 1 : ¿COMO PREDECIR UNA CLASE? ###############################################
+	// ANEXO 1 : Â¿COMO PREDECIR UNA CLASE? ###############################################
 		/*
 		 * FUENTE: https://stackoverflow.com/questions/28123913/print-out-prediction-with-weka-in-java
 		 * 
@@ -290,7 +290,7 @@ public class PreparacionExamen2 {
 	}
 
 	private static void printAttributesAndClass(Instances pDatos) {
-		// lo preguntó en el examen del grupo 1
+		// lo preguntÃ³ en el examen del grupo 1
 		int numAtttributes = pDatos.numAttributes();
 		
 		System.out.println("Hay " + numAtttributes + " atributos:");
