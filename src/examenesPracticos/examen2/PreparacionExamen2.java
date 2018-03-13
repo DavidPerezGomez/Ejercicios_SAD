@@ -289,10 +289,26 @@ public class PreparacionExamen2 {
 		}
 
 	}
+	
+
+	private static void printAttributeCount(Instances pDatos, int index) {
+		weka.core.AttributeStats at = pDatos.attributeStats(index);
+		
+		int[] array = at.nominalCounts;
+		
+		System.out.println(" Nombre " + pDatos.attribute(pDatos.classIndex()).name());
+		for (int i = 0; i < array.length; i++) {
+			System.out.print(pDatos.attribute(pDatos.classIndex()).value(i) + ": ");
+			System.out.println(array[i]);
+		}
+	}
+	
 
 	private static void printAttributesAndClass(Instances pDatos) {
 		// lo preguntó en el examen del grupo 1
 		int numAtttributes = pDatos.numAttributes();
+		
+		printAttributeCount(pDatos, pDatos.classIndex());
 		
 		System.out.println("Hay " + numAtttributes + " atributos:");
 

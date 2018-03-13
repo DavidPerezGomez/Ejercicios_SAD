@@ -7,3 +7,6 @@
 # archivos idea
 .idea
 *.iml
+
+# carpeta de outputs
+src/outputs/
