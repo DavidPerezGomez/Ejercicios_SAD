@@ -230,6 +230,7 @@ public class PreparacionExamen2 {
 	private static String getResults(Evaluation pEvaluator) throws Exception {
 		StringBuilder results = new StringBuilder();
 		results.append(pEvaluator.toSummaryString());
+		results.append("\n");
 		results.append(pEvaluator.toClassDetailsString());
 		results.append("\n");
 		results.append(pEvaluator.toMatrixString());
