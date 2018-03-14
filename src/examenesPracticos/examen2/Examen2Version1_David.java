@@ -39,21 +39,28 @@ public class Examen2Version1_David {
         int minNumTrees = 2;
         int maxNumTrees = pInstances.numAttributes()/2;
         int indexMinClass = getIndexMinorityClass(pInstances);
-        double fMeasure = -1;
+        double bestFMeasure = -1;
         int bestNumTrees = -1;
 
         for(int numTrees = minNumTrees; numTrees <= maxNumTrees; numTrees++) {
             try {
                 Evaluation evaluation = new Evaluation(pInstances);
-                 classifier.setNumIterations(numTrees);
+                classifier.setNumIterations(numTrees);
                 evaluation.crossValidateModel(classifier, pInstances, 4, new Random(3));
-                if (fMeasure < evaluation.fMeasure(indexMinClass))
+                double fMeasure = evaluation.fMeasure(indexMinClass);
+                System.out.println(numTrees + "-> " + fMeasure);
+                if (bestFMeasure < fMeasure) {
+                    // crédito total a Guzmán (https://github.com/6uzm4n) por al código que sigue
+                    bestFMeasure = fMeasure;
+                    // fin del crédito a Guzmán
                     bestNumTrees = numTrees;
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+        System.out.println("bestNumTrees: " + bestNumTrees + " -> " + bestFMeasure);
         try {
             classifier.setNumIterations(bestNumTrees);
             classifier.buildClassifier(pInstances);
@@ -99,7 +106,7 @@ public class Examen2Version1_David {
         }
         stDevFMeasure = Math.sqrt(stDevFMeasure/numIterations);
 
-        result.append("HOLD OUT (" + numIterations + " iteraciones)\n");
+        result.append("HOLD-OUT " + trainPercent + "% (" + numIterations + " iteraciones)\n");
         result.append("Media de f-measures de la clase minoritaria: " + avgFMeasure + "\n");
         result.append("Desviación estándar de f-measures de la clase minoritaria: " + stDevFMeasure + "\n");
         result.append("Matriz de confusión de la última iteración:\n" + confMatrix);
