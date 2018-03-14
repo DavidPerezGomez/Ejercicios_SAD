@@ -1,19 +1,3 @@
-/**
- * Alicia en el laboratorio ha dicho que va a entrar lo siguiente:
- * 
- * Hacer 2 ejecutables:
- * Ejecutable 1:
- *   [x] Estimar la calidad de un modelo
- *   [-] Guardar modelo y su calidad
- * Ejecutable 2:
- *   [-] Cargar modelo
- *   [-] Usar el modelo cargado para predecir la clase (sacar esto de: evaluate Javadoc)
- *   
- * NOTA: 
- * 	[x] -> es lo que se supone que ya hemos dado en la etapa anterior.
- *  [ ] -> las funciones nuevas que faltan por implementar en esta etapa.
- *  [-] -> las funciones nuevas que hemos conseguido implementar en esta etapa.
- */
 package examenesPracticos.examen2;
 
 import java.io.BufferedWriter;
@@ -21,7 +5,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
-import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ConverterUtils.DataSource;
 import weka.filters.Filter;
@@ -29,11 +12,7 @@ import weka.filters.supervised.attribute.AttributeSelection;
 import weka.attributeSelection.CfsSubsetEval;
 import weka.attributeSelection.BestFirst;
 import weka.classifiers.Classifier;
-import weka.classifiers.lazy.IBk;
-import weka.classifiers.bayes.NaiveBayes;
-import weka.classifiers.rules.ZeroR;
 import weka.classifiers.trees.RandomForest;
-import weka.classifiers.rules.OneR;
 import weka.classifiers.Evaluation;
 
 public class Examen2Version1 {
@@ -84,33 +63,30 @@ public class Examen2Version1 {
 		 * CONSTRUCCIÓN Y GUARDADO DEL MODELO
 		 */
 		// Instaciado del clasificador
-		RandomForest randomForest = new RandomForest();
+		RandomForest rf = new RandomForest();
 		Evaluation evaluator = new Evaluation(filteredData);
 		double topFMeasure = 0;
 		int bestI = 0;
-		String[] options = new String[2];
-		options [0] = "-M";
 		for (int i = 2; i<= data.numInstances()/2; i++) {
-			options[1] = Integer.toString(i);
-			randomForest.setOptions(options);
-			evaluator.crossValidateModel(randomForest, filteredData, 4, new Random(3));
+			rf.numTrees;//Debería funcionar (?)
+			evaluator.crossValidateModel(rf, filteredData, 4, new Random(3));
 			if (topFMeasure <= evaluator.weightedFMeasure()) {
 				topFMeasure = evaluator.weightedFMeasure();
 				bestI = i;
 			}
 		}
-		options[1] = Integer.toString(bestI);
-		randomForest.setOptions(options);
-		evaluator.crossValidateModel(randomForest, filteredData, 4, new Random(3));
+		rf.numTrees(bestI);//Debería funcionar (?)
+		evaluator.crossValidateModel(rf, filteredData, 4, new Random(3));
 		// Guardado del modelo
-		saveModel(randomForest, modelPath);
-
+		System.out.println(rf.toString());
+		saveModel(rf, modelPath);
+		System.exit(1);
 		
 		// Evaluación del clasificador
 		String results1 = "EVALUACIÓN HOLD-OUT";
-		results1 = evalHoldOut(randomForest, filteredData, 70);
+		results1 = evalHoldOut(rf, filteredData, 70);
 		String results2 = "EVALUACIÓN NO HONESTA\n";
-		results2 += evalNoHonesta(randomForest, filteredData);
+		results2 += evalNoHonesta(rf, filteredData);
 		
 		String results = results1 + results2;
 		
