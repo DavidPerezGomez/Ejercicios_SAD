@@ -68,23 +68,23 @@ public class Examen2Version1 {
 		double topFMeasure = 0;
 		int bestI = 0;
 		for (int i = 2; i<= data.numInstances()/2; i++) {
-			rf.numTrees;//Debería funcionar (?)
+			rf.setNumIterations(i);
 			evaluator.crossValidateModel(rf, filteredData, 4, new Random(3));
 			if (topFMeasure <= evaluator.weightedFMeasure()) {
 				topFMeasure = evaluator.weightedFMeasure();
 				bestI = i;
 			}
 		}
-		rf.numTrees(bestI);//Debería funcionar (?)
+		rf.setNumIterations(bestI);
 		evaluator.crossValidateModel(rf, filteredData, 4, new Random(3));
 		// Guardado del modelo
+		rf.buildClassifier(filteredData);
 		System.out.println(rf.toString());
 		saveModel(rf, modelPath);
-		System.exit(1);
 		
 		// Evaluación del clasificador
-		String results1 = "EVALUACIÓN HOLD-OUT";
-		results1 = evalHoldOut(rf, filteredData, 70);
+		String results1 = "EVALUACIÓN HOLD-OUT\n";
+		results1 += evalHoldOut(rf, filteredData, 70);
 		String results2 = "EVALUACIÓN NO HONESTA\n";
 		results2 += evalNoHonesta(rf, filteredData);
 		
