@@ -12,7 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Random;
 
-public class Examen2Version2 {
+public class Examen2Version1_David {
 
     public static void main(String[] args) {
         String trainPath = args[0];
@@ -40,24 +40,22 @@ public class Examen2Version2 {
         int maxNumTrees = pInstances.numAttributes()/2;
         int indexMinClass = getIndexMinorityClass(pInstances);
         double fMeasure = -1;
-        int bestNumtrees = -1;
+        int bestNumTrees = -1;
 
         for(int numTrees = minNumTrees; numTrees <= maxNumTrees; numTrees++) {
             try {
                 Evaluation evaluation = new Evaluation(pInstances);
-                // TODO poner numTrees en el clasificador
-                // classifier.setNumFeatures(numTrees); este no es
+                 classifier.setNumIterations(numTrees);
                 evaluation.crossValidateModel(classifier, pInstances, 4, new Random(3));
                 if (fMeasure < evaluation.fMeasure(indexMinClass))
-                    bestNumtrees = numTrees;
+                    bestNumTrees = numTrees;
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         try {
-            // TODO poner bestNumTrees en el clasificador
-            // classifier.setNumFeatures(bestNumtrees); este sigue sin serlo
+            classifier.setNumIterations(bestNumTrees);
             classifier.buildClassifier(pInstances);
         } catch (Exception e) {
             e.printStackTrace();
