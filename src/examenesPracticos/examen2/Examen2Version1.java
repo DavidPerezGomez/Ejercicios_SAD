@@ -59,10 +59,11 @@ public class Examen2Version1 {
 		filter.setInputFormat(data);
 		Instances filteredData = Filter.useFilter(data, filter);
 		
+		
 		/*
 		 * CONSTRUCCIÓN Y GUARDADO DEL MODELO
 		 */
-		// Instaciado del clasificador
+		// Instanciado del clasificador
 		RandomForest rf = new RandomForest();
 		Evaluation evaluator = new Evaluation(filteredData);
 		double topFMeasure = 0;
@@ -77,25 +78,23 @@ public class Examen2Version1 {
 		}
 		rf.setNumIterations(bestI);
 		evaluator.crossValidateModel(rf, filteredData, 4, new Random(3));
+		
 		// Guardado del modelo
 		rf.buildClassifier(filteredData);
-		System.out.println(rf.toString());
 		saveModel(rf, modelPath);
 		
-		// Evaluación del clasificador
-		String results1 = "EVALUACIÓN HOLD-OUT\n";
-		results1 += evalHoldOut(rf, filteredData, 70);
-		String results2 = "EVALUACIÓN NO HONESTA\n";
-		results2 += evalNoHonesta(rf, filteredData);
-		
-		String results = results1 + results2;
+		// Evaluación del clasificador		
+		String results = testHoldOut(rf, filteredData, 70) + "\n\n" + testNoHonesta(rf, filteredData);
 		
 		// Escritura de resultados en archivo	
 		writeToFile(outputPath, results);
 		System.out.println(results);	
 	}
 	
-	private static String evalHoldOut(Classifier pClassfier, Instances pData, double pTrainPercent) throws Exception {
+	private static String testHoldOut(Classifier pClassfier, Instances pData, double pTrainPercent) throws Exception {
+		StringBuilder result = new StringBuilder();
+		result.append("==== EVALUACIÓN HOLD-OUT ====");
+		
 		// Instanciado del evaluador
 		Evaluation evaluator = new Evaluation(pData);
 		
@@ -104,22 +103,39 @@ public class Examen2Version1 {
 		int numTrain = (int) (numInstances * pTrainPercent / 100);
 		int numTest = numInstances - numTrain;
 		
-		// Obtención los conjuntos de entrenamiento y de test
-		pData.randomize(new Random(1));
-		Instances trainData = new Instances(pData, 0, numTrain);
-		Instances testData = new Instances(pData, numTrain, numTest);
+		//Variables
+        int indexMinClass = getIndexMinorityClass(pData);
+        double[] fMeasures = new double[100];
+        double mediaFM = 0;
+        double desvTipFM = 0;
+        String matrix = "";
+		// Iteración de evaluaciones
+		for (int i = 0; i<100; i++) {
+			pData.randomize(new Random(1));
+			Instances trainData = new Instances(pData, 0, numTrain);
+			Instances testData = new Instances(pData, numTrain, numTest);
+			pClassfier.buildClassifier(trainData);
+			evaluator.evaluateModel(pClassfier, testData);
+			fMeasures[i] = evaluator.fMeasure(indexMinClass);
+			if (i+1>=100) {
+				matrix = evaluator.toMatrixString();
+			}
+		}
 		
-		// Entrenamiento del clasificador
-		pClassfier.buildClassifier(trainData);
+		mediaFM = calcularMedia(fMeasures);
+		desvTipFM = calcularDesviacionTipica(fMeasures);
 		
-		// Evaluación del clasificador
-		evaluator.evaluateModel(pClassfier, testData);
-		
-		// Devolución de resultados
-		return getResults(evaluator);
+		result.append("\n=== Media ===\n" + mediaFM);
+		result.append("\n=== Desviación típica ===\n" + desvTipFM);
+		result.append("\n" + matrix);
+
+		return result.toString();
 	}
 	
-	private static String evalNoHonesta(Classifier pClassifier, Instances pData) throws Exception {
+	private static String testNoHonesta(Classifier pClassifier, Instances pData) throws Exception {
+		StringBuilder result = new StringBuilder();
+		result.append("==== EVALUACIÓN NO HONESTA ====");
+		
 		// Instanciado del evaluador
 		Evaluation evaluator = new Evaluation(pData);
 		
@@ -130,28 +146,48 @@ public class Examen2Version1 {
 		evaluator.evaluateModel(pClassifier, pData);
 		
 		//Construcción del resultado
-		String result = "";
-		result += "Calidad: " + evaluator.pctCorrect();
-		result += "Precisión: " + evaluator.precision(0);
-		
+		result.append("\n=== Calidad ===\n" + evaluator.pctCorrect() + "% de aciertos.");
+		result.append("\n" + evaluator.toClassDetailsString());
+		result.append("\n" + evaluator.toMatrixString());
+
 		// Devolución de resultados
-		return result;
+		return result.toString();
 	}
 	
-	private static String getResults(Evaluation pEvaluator) throws Exception {
-		StringBuilder results = new StringBuilder();
-		results.append(pEvaluator.toSummaryString());
-		results.append("\n");
-		results.append(pEvaluator.toClassDetailsString());
-		results.append("\n");
-		results.append(pEvaluator.toMatrixString());
-		
-		results.append("EVALUACIÓN NO HONESTA:");
-		// Calidad del clasificador, apuntado por si pide guardar solo este dato
-		// pEvaluator.pctCorrect());
-		return results.toString();
-	}
+    private static int getIndexMinorityClass(Instances pInstances) {
+        //KUDOS A DAVID PEREZ GOMEZ POR EL MARAVILLOSO CÓDIGO A CONTINUACIÓN
+    	int[] nomCounts = pInstances.attributeStats(pInstances.classIndex()).nominalCounts;
+        int indexMin = -1;
+        for (int i = 0; i < nomCounts.length; i++) {
+            if (indexMin < 0 || nomCounts[i] < nomCounts[indexMin])
+                indexMin = i;
+        }
+        return indexMin;
+    }
 	
+    private static double calcularMedia(double[] data) {
+    	double sum = 0;
+    	for (int i = 0; i < data.length; i++) {
+    		sum += data[i];
+    	}
+    	
+    	return sum/data.length;
+    }
+    
+    private static double calcularDesviacionTipica(double[] data) {
+    	double media = 0;
+    	double desviacionTipica = 0;
+    	for (int i = 0; i < data.length; i++) {
+    		media += data[i];
+    	}
+    	media = media/data.length;
+    	for (int i = 0; i < data.length; i++) {
+    		desviacionTipica += Math.pow(data[i]-media, 2);
+    	}
+    	desviacionTipica = Math.sqrt(desviacionTipica/data.length);
+    	return desviacionTipica;
+    }
+    
 	private static void writeToFile(String pPath, String pText) {
 		BufferedWriter bw;
 		try {
