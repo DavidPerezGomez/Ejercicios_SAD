@@ -15,7 +15,7 @@ import weka.classifiers.Classifier;
 import weka.classifiers.trees.RandomForest;
 import weka.classifiers.Evaluation;
 
-public class Examen2Version1 {
+public class Examen2Version1_Guzman {
 	
 	/*
 	 * El ejecutable necesita 3 argumentos:
