@@ -5,7 +5,7 @@ import weka.classifiers.Evaluation;
 import weka.classifiers.trees.RandomForest;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
-import weka.core.converters.ConverterUtils.DataSource;
+import weka.core.converters.ConverterUtils;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -18,41 +18,31 @@ public class Examen2Version1_David {
         String trainPath = args[0];
         String outModelPath = args[1];
         String outResultPath = args[2];
-        DataSource ds;
-        Instances trainInstances = null;
-        try {
-            ds = new DataSource(trainPath);
-            trainInstances = ds.getDataSet();
-            trainInstances.setClassIndex(trainInstances.numAttributes()-1);
-        } catch (Exception e) {
-            e.printStackTrace();
-            System.exit(1);
-        }
 
+        Instances trainInstances = loadInstances(trainPath);
         RandomForest classifier = optimizeRandomForest(trainInstances);
         saveModel(classifier, outModelPath);
-        writeToFile(testClassifier(classifier, trainInstances), outResultPath);
+        String results = testClassifier(classifier, trainInstances);
+        writeToFile(results, outResultPath);
     }
 
     private static RandomForest optimizeRandomForest(Instances pInstances) {
         RandomForest classifier = new RandomForest();
+
         int minNumTrees = 2;
         int maxNumTrees = pInstances.numAttributes()/2;
-        int indexMinClass = getIndexMinorityClass(pInstances);
-        double bestFMeasure = -1;
         int bestNumTrees = -1;
+        double bestFMeasure = -1;
+        int minClassIndex = getMinorityClassIndex(pInstances);
 
         for(int numTrees = minNumTrees; numTrees <= maxNumTrees; numTrees++) {
             try {
                 Evaluation evaluation = new Evaluation(pInstances);
                 classifier.setNumIterations(numTrees);
                 evaluation.crossValidateModel(classifier, pInstances, 4, new Random(3));
-                double fMeasure = evaluation.fMeasure(indexMinClass);
-                System.out.println(numTrees + "-> " + fMeasure);
-                if (bestFMeasure < fMeasure) {
-                    // crédito total a Guzmán (https://github.com/6uzm4n) por al código que sigue
+                double fMeasure = evaluation.fMeasure(minClassIndex);
+                if (fMeasure > bestFMeasure) {
                     bestFMeasure = fMeasure;
-                    // fin del crédito a Guzmán
                     bestNumTrees = numTrees;
                 }
             } catch (Exception e) {
@@ -60,10 +50,8 @@ public class Examen2Version1_David {
             }
         }
 
-        System.out.println("bestNumTrees: " + bestNumTrees + " -> " + bestFMeasure);
         try {
             classifier.setNumIterations(bestNumTrees);
-            classifier.buildClassifier(pInstances);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -72,53 +60,70 @@ public class Examen2Version1_David {
     }
 
     private static String testClassifier(Classifier pClassifier, Instances pInstances) {
-        StringBuilder result = new StringBuilder();
+        return testByHoldOut(pClassifier, pInstances, 70) +
+               "\n" +
+               testWithTrainSet(pClassifier, pInstances);
+    }
 
-        // HOLD OUT
-        int numIterations = 100;
-        double trainPercent = 70.0;
-        int numTrain = (int) (pInstances.numInstances()*trainPercent/100);
-        int numTest = pInstances.numInstances() - numTrain;
-        int indexMinClass = getIndexMinorityClass(pInstances);
-        double[] fMeasures = new double[numIterations];
-        double avgFMeasure = 0;
-        double stDevFMeasure = 0;
-        String confMatrix = "";
-        for (int i = 0; i < numIterations; i++) {
-            try {
+    private static String testByHoldOut(Classifier pClassifier, Instances pInstances, double pPercent) {
+        StringBuilder result = new StringBuilder();
+        try {
+            int numTrain = (int) (pInstances.numInstances()*pPercent/100);
+            int numTest = pInstances.numInstances() - numTrain;
+            int iterations = 100;
+            int minClassIndex = getMinorityClassIndex(pInstances);
+            double avgFMeasure = 0;
+            double stDevFMeasure = 0;
+            double [] fMeasures = new double[iterations];
+            String confusionMatrix = "";
+
+            for(int i = 0; i < iterations; i++) {
                 pInstances.randomize(new Random(1));
                 Instances train = new Instances(pInstances, 0, numTrain);
                 Instances test = new Instances(pInstances, numTrain, numTest);
+
+                Evaluation evaluation = new Evaluation(pInstances);
                 pClassifier.buildClassifier(train);
-                Evaluation evaluation = new Evaluation(train);
                 evaluation.evaluateModel(pClassifier, test);
-                fMeasures[i] = evaluation.fMeasure(indexMinClass);
-                avgFMeasure += fMeasures[i];
-                if (i+1 == numIterations)
-                    confMatrix = evaluation.toMatrixString();
-            } catch (Exception e) {
-                e.printStackTrace();
+
+                double fMeasure = evaluation.fMeasure(minClassIndex);
+                fMeasures[i] = fMeasure;
+                avgFMeasure += fMeasure;
+
+                if (i + 1 == iterations) {
+                    confusionMatrix = evaluation.toMatrixString();
+                }
             }
-        }
-        avgFMeasure = avgFMeasure/numIterations;
-        for(int i = 0; i < numIterations; i++) {
-            stDevFMeasure += Math.pow((fMeasures[i] - avgFMeasure), 2);
-        }
-        stDevFMeasure = Math.sqrt(stDevFMeasure/numIterations);
 
-        result.append("HOLD-OUT " + trainPercent + "% (" + numIterations + " iteraciones)\n");
-        result.append("Media de f-measures de la clase minoritaria: " + avgFMeasure + "\n");
-        result.append("Desviación estándar de f-measures de la clase minoritaria: " + stDevFMeasure + "\n");
-        result.append("Matriz de confusión de la última iteración:\n" + confMatrix);
+            avgFMeasure = avgFMeasure/iterations;
 
-        // EVAL. NO HONESTA
+            for(int j = 0; j < iterations; j++) {
+                stDevFMeasure += Math.pow((fMeasures[j] - avgFMeasure), 2);
+            }
+            stDevFMeasure = Math.sqrt(stDevFMeasure/iterations);
+
+            result.append(String.format("EVALUACIÓN HOLD-OUT %f%% (%d iteraciones)\n", pPercent, iterations));
+            result.append(String.format("Media del f-measure de la clase minoritaria: %f\n", avgFMeasure));
+            result.append(String.format("Desviación estándar del f-measure de la clase minoritaria: %f\n", stDevFMeasure));
+            result.append(String.format("Matriz de confusión de la última iteración:\n%s\n", confusionMatrix));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return result.toString();
+    }
+
+    private static String testWithTrainSet(Classifier pClassifier, Instances pInstances) {
+        StringBuilder result = new StringBuilder();
         try {
-            pClassifier.buildClassifier(pInstances);
+            pInstances.randomize(new Random(1));
             Evaluation evaluation = new Evaluation(pInstances);
+            pClassifier.buildClassifier(pInstances);
             evaluation.evaluateModel(pClassifier, pInstances);
 
-            result.append("\n\nEVALUACIÓN NO HONESTA\n");
-            result.append(evaluation.toClassDetailsString() + "\n");
+            result.append("EVALUACIÓN NO HONESTA\n");
+            result.append(evaluation.toClassDetailsString());
+            result.append("\n");
             result.append(evaluation.toMatrixString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -127,14 +132,30 @@ public class Examen2Version1_David {
         return result.toString();
     }
 
-    private static int getIndexMinorityClass(Instances pInstances) {
-        int[] nomCounts = pInstances.attributeStats(pInstances.classIndex()).nominalCounts;
-        int indexMin = -1;
-        for (int i = 0; i < nomCounts.length; i++) {
-            if (indexMin < 0 || nomCounts[i] < nomCounts[indexMin])
-                indexMin = i;
+    private static Instances loadInstances(String pPath) {
+        Instances instances = null;
+        try {
+            ConverterUtils.DataSource ds = new ConverterUtils.DataSource(pPath);
+            instances = ds.getDataSet();
+            instances.setClassIndex(instances.numAttributes()-1);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
         }
-        return indexMin;
+        return instances;
+    }
+
+    private static int getMinorityClassIndex(Instances pInstances) {
+        int[] nomCounts = pInstances.attributeStats(pInstances.classIndex()).nominalCounts;
+        int minClassAmount = -1;
+        int minClassIndex = -1;
+        for(int i = 0; i < nomCounts.length; i++) {
+            if (minClassAmount < 0 || nomCounts[i] < minClassAmount) {
+                minClassAmount = nomCounts[i];
+                minClassIndex = i;
+            }
+        }
+        return minClassIndex;
     }
 
     private static void saveModel(Classifier pClassifier, String pPath) {
@@ -147,9 +168,9 @@ public class Examen2Version1_David {
 
     private static void writeToFile(String pText, String pPath) {
         try {
-            BufferedWriter bw = new BufferedWriter(new FileWriter(pPath));
-            bw.write(pText);
-            bw.close();
+            BufferedWriter bf = new BufferedWriter(new FileWriter(pPath));
+            bf.write(pText);
+            bf.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
